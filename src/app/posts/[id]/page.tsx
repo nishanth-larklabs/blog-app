@@ -22,40 +22,47 @@ interface PostDetailPageProps {
 
 export default function PostDetailPage({ params }: PostDetailPageProps) {
   const postId = params.id;
-
-  // Find the post from mock data
   const post = MOCK_POSTS.find(p => p.id === postId && p.published);
 
-  // If post not found or not published, show a 404
   if (!post) {
-    notFound(); // Next.js utility to render the default 404 page
+    notFound();
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <article className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-4">
+    <div className="bg-slate-50 px-4 py-16 sm:py-24">
+      <article className="mx-auto max-w-4xl bg-white rounded-2xl shadow-xl p-6 sm:p-8 lg:p-12">
+        <h1 className="text-center text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl mb-4">
           {post.title}
         </h1>
-        <p className="text-md text-gray-600 dark:text-gray-400 mb-6">
+        <p className="text-center text-md text-slate-500 mb-10">
           By {post.authorName} on {formatDate(post.createdAt)}{' '}
           {post.updatedAt && post.createdAt.getTime() !== post.updatedAt.getTime() && (
             <span className="text-sm italic"> (Last updated: {formatDate(post.updatedAt)})</span>
           )}
         </p>
 
-        <div className="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-200 leading-relaxed space-y-4">
-          {/* This is where the full content goes. We are just displaying it as plain text for now. */}
-          {/* In a real app, this would be rendered from a rich text editor or markdown parser. */}
+        <div className="prose prose-lg lg:prose-xl prose-slate max-w-none">
           <p>{post.content}</p>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="mt-12 pt-10 border-t border-slate-200">
           <a
             href="/"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            className="inline-flex items-center gap-x-2 text-sm font-semibold text-indigo-600 hover:text-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-8 focus-visible:ring-indigo-500 rounded-sm"
           >
-            <svg className="mr-2 -ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd"></path></svg>
+            <svg
+              className="h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z"
+                clipRule="evenodd"
+              />
+            </svg>
             Back to Blog
           </a>
         </div>
