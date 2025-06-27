@@ -54,48 +54,89 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <h1 className="text-4xl font-extrabold text-center mb-10 text-gray-900 dark:text-gray-100">
-        Our Latest Blog Posts
-      </h1>
+  <div className="bg-slate-50">
+    <div className="container mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          Our Latest Blog Posts
+        </h1>
+        <p className="mt-3 max-w-2xl mx-auto text-lg text-slate-500 sm:mt-4">
+          Stay up to date with our latest insights, tutorials, and company news.
+        </p>
+      </div>
 
       {error && (
-        <p className="text-center text-red-600 dark:text-red-400 mb-4">{error}</p>
+        <div className="mt-8 rounded-md bg-red-50 p-4" role="alert">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">An Error Occurred</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
-      <div className="grid gap-8">
+      <div className="mt-12 grid grid-cols-1 gap-x-8 gap-y-12 lg:grid-cols-2">
         {publishedPosts.length === 0 && !error ? (
-          <p className="text-center text-gray-600 dark:text-gray-400">
-            No blog posts available yet. Check back soon!
-          </p>
+          <div className="lg:col-span-2 text-center py-24 px-6 bg-white rounded-2xl">
+            <h3 className="text-xl font-semibold text-slate-800">
+              No Posts Yet
+            </h3>
+            <p className="mt-2 text-slate-500">
+              There are no blog posts available at the moment. Please check back soon!
+            </p>
+          </div>
         ) : (
           publishedPosts.map((post: Post) => (
             <article
               key={post.id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden"
+              className="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-all duration-300 ease-in-out hover:shadow-xl"
             >
-              <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <div className="flex flex-col flex-grow p-6 sm:p-8">
+                <h2 className="text-xl font-semibold text-slate-900 transition-colors duration-300 ease-in-out group-hover:text-indigo-600">
                   {post.title}
                 </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                <p className="mt-2 text-sm text-slate-500">
                   By {post.authorName} on {formatDate(post.createdAt.toDate())}
                 </p>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                <p className="mt-4 text-base leading-relaxed text-slate-600 flex-grow">
                   {generateSummary(post.content)}
                 </p>
-                <a
-                  href={`/posts/${post.id}`}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Read More
-                  <svg className="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>
-                </a>
+                <div className="mt-6">
+                  <a
+                    href={`/posts/${post.id}`}
+                    className="inline-flex items-center text-sm font-semibold text-indigo-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 rounded-sm"
+                    aria-label={`Read more about ${post.title}`}
+                  >
+                    Read More
+                    <svg
+                      className="ml-1 h-4 w-4 transition-transform duration-300 ease-in-out group-hover:translate-x-1"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </a>
+                </div>
               </div>
             </article>
           ))
         )}
       </div>
     </div>
+  </div>
   );
 }
