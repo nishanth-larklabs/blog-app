@@ -264,7 +264,7 @@ export default function PostEditor({ postId }: PostEditorProps) {
                   <div className="space-y-3 border-t border-slate-200 pt-6">
                     <button
                       type="submit"
-                      className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:bg-indigo-400 disabled:cursor-not-allowed"
+                      className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:bg-indigo-400 disabled:cursor-not-allowed"
                       disabled={saving}
                     >
                       {saving
@@ -276,7 +276,7 @@ export default function PostEditor({ postId }: PostEditorProps) {
                     <button
                       type="button"
                       onClick={() => router.push("/admin/dashboard")}
-                      className="flex w-full justify-center rounded-md bg-transparent px-3 py-2.5 text-sm font-semibold leading-6 text-slate-600 hover:bg-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                      className="flex w-full justify-center rounded-md bg-transparent px-3 py-2.5 text-sm font-semibold leading-6 text-slate-600 hover:bg-slate-200 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                     >
                       Cancel
                     </button>
