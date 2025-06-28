@@ -141,119 +141,148 @@ export default function PostEditor({ postId }: PostEditorProps) {
 
   return (
     <div className="bg-slate-100 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-      <div className="container mx-auto max-w-4xl">
-        <div className="bg-white rounded-xl shadow-2xl p-8 sm:p-10">
-          <h1 className="text-3xl font-bold text-center text-slate-900 mb-8">
-            {isEditing ? "Edit Post" : "Create New Post"}
-          </h1>
+      <div className="container mx-auto max-w-5xl">
+        <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
+          <form onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 lg:grid-cols-3">
+              <div className="lg:col-span-2 p-8">
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-8">
+                  {isEditing ? "Edit Post" : "Create New Post"}
+                </h1>
 
-          {error && (
-            <div className="rounded-md bg-red-50 p-4 mb-6" role="alert">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg
-                    className="h-5 w-5 text-red-400"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-red-800">{error}</p>
+                {error && (
+                  <div className="rounded-md bg-red-50 p-4 mb-6" role="alert">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <svg
+                          className="h-5 w-5 text-red-400"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm font-medium text-red-800">
+                          {error}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-8">
+                  <div>
+                    <label
+                      htmlFor="title"
+                      className="block text-sm font-medium leading-6 text-slate-900"
+                    >
+                      Post Title
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        id="title"
+                        className="block w-full rounded-md border-0 py-2.5 px-4 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                        placeholder="e.g., How to Build a Great UI"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="content"
+                      className="block text-sm font-medium leading-6 text-slate-900"
+                    >
+                      Content
+                    </label>
+                    <div className="mt-2">
+                      <textarea
+                        id="content"
+                        rows={18}
+                        className="block w-full rounded-md border-0 py-2.5 px-4 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 font-mono"
+                        placeholder="Start writing your masterpiece..."
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        required
+                      ></textarea>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div>
-              <label
-                htmlFor="title"
-                className="block text-sm font-medium leading-6 text-slate-900 mb-2"
-              >
-                Title
-              </label>
-              <input
-                type="text"
-                id="title"
-                className="block w-full rounded-md border-0 py-2.5 px-4 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                placeholder="How to Build a Great UI"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-            </div>
+              <div className="lg:col-span-1 bg-slate-50 p-8 lg:border-l lg:border-slate-200">
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-base font-semibold leading-6 text-slate-900">
+                      Publishing
+                    </h2>
+                    <div className="mt-4 space-y-4">
+                      <div className="flex items-start justify-between gap-x-4 rounded-lg border border-slate-200 bg-white p-4">
+                        <div className="text-sm">
+                          <label
+                            htmlFor="published"
+                            className="font-medium text-slate-900"
+                          >
+                            Publish Post
+                          </label>
+                          <p className="text-slate-500">
+                            This post will be hidden from the public blog until
+                            published.
+                          </p>
+                        </div>
+                        <div className="flex items-center h-6">
+                          <input
+                            id="published"
+                            type="checkbox"
+                            className="peer sr-only"
+                            checked={published}
+                            onChange={(e) => setPublished(e.target.checked)}
+                          />
+                          <label
+                            htmlFor="published"
+                            className="relative flex h-6 w-11 cursor-pointer items-center rounded-full border border-transparent bg-slate-300 transition-colors duration-200 ease-in-out peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-600 peer-focus:ring-offset-2 peer-checked:bg-indigo-600 peer-checked:border-indigo-600"
+                          >
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 peer-checked:translate-x-5"
+                            ></span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-            <div>
-              <label
-                htmlFor="content"
-                className="block text-sm font-medium leading-6 text-slate-900 mb-2"
-              >
-                Content
-              </label>
-              <textarea
-                id="content"
-                rows={15}
-                className="block w-full rounded-md border-0 py-2.5 px-4 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 font-mono"
-                placeholder="Start writing your masterpiece..."
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                required
-              ></textarea>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center">
-                <input
-                  id="published"
-                  type="checkbox"
-                  className="peer sr-only"
-                  checked={published}
-                  onChange={(e) => setPublished(e.target.checked)}
-                />
-                <label
-                  htmlFor="published"
-                  className="relative flex h-6 w-11 cursor-pointer items-center rounded-full border border-transparent bg-slate-300 transition-colors duration-200 ease-in-out peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-600 peer-focus:ring-offset-2 peer-checked:bg-indigo-600 peer-checked:border-indigo-600"
-                >
-                  <span
-                    aria-hidden="true"
-                    className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 peer-checked:translate-x-5"
-                  ></span>
-                </label>
+                  <div className="space-y-3 border-t border-slate-200 pt-6">
+                    <button
+                      type="submit"
+                      className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:bg-indigo-400 disabled:cursor-not-allowed"
+                      disabled={saving}
+                    >
+                      {saving
+                        ? "Saving..."
+                        : isEditing
+                        ? "Update Post"
+                        : "Create Post"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => router.push("/admin/dashboard")}
+                      className="flex w-full justify-center rounded-md bg-transparent px-3 py-2.5 text-sm font-semibold leading-6 text-slate-600 hover:bg-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
               </div>
-              <label
-                htmlFor="published"
-                className="block text-sm font-medium text-slate-900 cursor-pointer"
-              >
-                Publish Post
-              </label>
-            </div>
-
-            <div className="flex justify-end items-center gap-x-4 border-t border-slate-200 pt-6">
-              <button
-                type="button"
-                onClick={() => router.push("/admin/dashboard")}
-                className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="inline-flex justify-center rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:bg-indigo-400 disabled:cursor-not-allowed"
-                disabled={saving}
-              >
-                {saving
-                  ? "Saving..."
-                  : isEditing
-                  ? "Update Post"
-                  : "Create Post"}
-              </button>
             </div>
           </form>
         </div>
