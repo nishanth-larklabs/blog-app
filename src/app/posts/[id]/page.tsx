@@ -1,13 +1,13 @@
-// app/posts/[id]/page.tsx
-
 import { db } from "@/lib/firebase";
 import { Post } from "@/types/post";
 import { doc, getDoc } from "firebase/firestore";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Button } from "@/components/ui/button";
+import { ArrowLeftIcon } from "@radix-ui/react-icons";
 
-// Helper function to format dates
 const formatDate = (date: Date | null) => {
   if (!date) return "N/A";
   return new Date(date).toLocaleDateString("en-US", {
@@ -24,7 +24,6 @@ interface PostDetailPageProps {
 }
 
 export default async function PostDetailPage({ params }: PostDetailPageProps) {
-  // Await the params before using them
   const { id: postId } = await params;
   let post: Post | undefined;
 
@@ -57,49 +56,43 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
   }
 
   return (
-    <div className="bg-slate-50 px-4 py-16 sm:py-24">
-      <article className="mx-auto max-w-4xl bg-white rounded-2xl shadow-xl p-6 sm:p-8 lg:p-12">
-        <h1 className="text-center text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl mb-4">
-          {post.title}
-        </h1>
-        <p className="text-center text-md text-slate-500 mb-10">
-          By {post.authorName} on {formatDate(post.createdAt.toDate())}{" "}
-          {post.updatedAt &&
-            post.createdAt.toMillis() !== post.updatedAt.toMillis() && (
-              <span className="text-sm italic">
-                (Last updated: {formatDate(post.updatedAt.toDate())})
-              </span>
-            )}
-        </p>
-
-        <div className="prose prose-lg lg:prose-xl prose-slate max-w-none">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {post.content}
-          </ReactMarkdown>
+    <main className="bg-background py-16 sm:py-24">
+      <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-12">
+          <Button asChild variant="ghost" className="pl-0">
+            <Link href="/" className="inline-flex items-center gap-2">
+              <ArrowLeftIcon className="h-4 w-4" />
+              Back to Blog
+            </Link>
+          </Button>
         </div>
+        <article>
+          <header className="mb-8 text-center">
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+              {post.title}
+            </h1>
+            <div className="mt-6 flex items-center justify-center gap-x-4 text-sm text-muted-foreground">
+              <p>By {post.authorName}</p>
+              <span aria-hidden="true">·</span>
+              <time dateTime={post.createdAt.toDate().toISOString()}>
+                {formatDate(post.createdAt.toDate())}
+              </time>
+            </div>
+            {post.updatedAt &&
+              post.createdAt.toMillis() !== post.updatedAt.toMillis() && (
+                <p className="mt-2 text-xs italic text-muted-foreground">
+                  (Last updated: {formatDate(post.updatedAt.toDate())})
+                </p>
+              )}
+          </header>
 
-        <div className="mt-12 pt-10 border-t border-slate-200">
-          <a
-            href="/"
-            className="inline-flex items-center gap-x-2 text-sm font-semibold text-indigo-600 hover:text-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-8 focus-visible:ring-indigo-500 rounded-sm"
-          >
-            <svg
-              className="h-4 w-4"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                fillRule="evenodd"
-                d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z"
-                clipRule="evenodd"
-              ></path>
-            </svg>
-            Back to Blog
-          </a>
-        </div>
-      </article>
-    </div>
+          <div className="prose prose-lg dark:prose-invert lg:prose-xl mx-auto max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {post.content}
+            </ReactMarkdown>
+          </div>
+        </article>
+      </div>
+    </main>
   );
 }

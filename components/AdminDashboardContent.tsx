@@ -1,9 +1,7 @@
-// components/AdminDashboardContent.tsx
-
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback } from "react"; // Import useCallback
+import { useEffect, useState, useCallback, useTransition } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
 import {
@@ -14,34 +12,138 @@ import {
   doc,
   updateDoc,
   deleteDoc,
-} from "firebase/firestore"; // Import doc, updateDoc, deleteDoc
+} from "firebase/firestore";
 import { Post } from "@/types/post";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { MoreHorizontal, Plus, Loader2 } from "lucide-react";
 
-// Helper function to format dates
 const formatDate = (date: Date | null) => {
   if (!date) return "N/A";
   return new Date(date).toLocaleDateString("en-US", {
     year: "numeric",
-    month: "short", // e.g., Jun
+    month: "short",
     day: "numeric",
   });
+};
+
+const DashboardSkeleton = () => {
+  return (
+    <main className="container mx-auto max-w-7xl p-4 md:p-8">
+      <Card>
+        <CardHeader className="items-center">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="mt-2 h-5 w-80" />
+        </CardHeader>
+        <CardContent>
+          <div className="mb-6 flex items-center justify-between">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    <Skeleton className="h-5 w-24" />
+                  </TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    <Skeleton className="h-5 w-20" />
+                  </TableHead>
+                  <TableHead>
+                    <Skeleton className="h-5 w-16" />
+                  </TableHead>
+                  <TableHead className="hidden sm:table-cell">
+                    <Skeleton className="h-5 w-24" />
+                  </TableHead>
+                  <TableHead className="text-right">
+                    <Skeleton className="ml-auto h-5 w-16" />
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Skeleton className="h-5 w-40" />
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <Skeleton className="h-5 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-12 rounded-full" />
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <Skeleton className="h-5 w-28" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-8 w-8" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-center pt-6">
+          <Skeleton className="h-10 w-24" />
+        </CardFooter>
+      </Card>
+    </main>
+  );
 };
 
 export default function AdminDashboardContent() {
   const { user, logout } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
-  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, startTransition] = useTransition();
+  const [postToDelete, setPostToDelete] = useState<Post | null>(null);
 
-  // Memoized function to fetch posts
   const fetchPosts = useCallback(async () => {
-    setLoadingPosts(true);
     setError(null);
     try {
       const postsRef = collection(db, "posts");
       const q = query(postsRef, orderBy("createdAt", "desc"));
       const querySnapshot = await getDocs(q);
-
       const fetchedPosts: Post[] = querySnapshot.docs.map((doc) => {
         const data = doc.data();
         return {
@@ -60,249 +162,242 @@ export default function AdminDashboardContent() {
       console.error("Error fetching admin posts: ", e);
       setError("Failed to load posts. Please try again.");
     } finally {
-      setLoadingPosts(false);
+      setIsLoading(false);
     }
-  }, []); // No dependencies for useCallback, as it's a pure fetch operation
+  }, []);
 
   useEffect(() => {
-    // Only fetch posts if user is authenticated (AuthGuard already ensures admin role)
     if (user) {
       fetchPosts();
     }
-  }, [user, fetchPosts]); // Re-run if user changes or fetchPosts function reference changes (it won't, due to useCallback)
+  }, [user, fetchPosts]);
 
   const handleTogglePublish = async (
     postId: string,
     currentStatus: boolean
   ) => {
-    try {
-      setLoadingPosts(true); // Indicate that an operation is in progress
-      const postRef = doc(db, "posts", postId);
-      await updateDoc(postRef, {
-        published: !currentStatus,
-        updatedAt: new Date(), // Update the timestamp
-      });
-      console.log(
-        `Post ${postId} published status toggled to ${!currentStatus}`
-      );
-      await fetchPosts(); // Re-fetch posts to update the list
-    } catch (e) {
-      console.error("Error toggling publish status:", e);
-      setError("Failed to update post status.");
-    } finally {
-      setLoadingPosts(false);
-    }
+    startTransition(async () => {
+      try {
+        const postRef = doc(db, "posts", postId);
+        await updateDoc(postRef, {
+          published: !currentStatus,
+          updatedAt: new Date(),
+        });
+        await fetchPosts();
+      } catch (e) {
+        console.error("Error toggling publish status:", e);
+        setError("Failed to update post status.");
+      }
+    });
   };
 
-  const handleDeletePost = async (postId: string, postTitle: string) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete the post "${postTitle}"? This action cannot be undone.`
-      )
-    ) {
+  const handleDeletePost = async () => {
+    if (!postToDelete) return;
+
+    startTransition(async () => {
       try {
-        setLoadingPosts(true); // Indicate that an operation is in progress
-        const postRef = doc(db, "posts", postId);
+        const postRef = doc(db, "posts", postToDelete.id);
         await deleteDoc(postRef);
-        console.log(`Post ${postId} deleted successfully.`);
-        await fetchPosts(); // Re-fetch posts to update the list
+        setPostToDelete(null);
+        await fetchPosts();
       } catch (e) {
         console.error("Error deleting post:", e);
         setError("Failed to delete post.");
-      } finally {
-        setLoadingPosts(false);
+        setPostToDelete(null);
       }
-    }
+    });
   };
 
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
   return (
-    <div className="container mx-auto p-4 max-w-5xl">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-6">
-          Admin Dashboard
-        </h1>
-        {user && (
-          <p className="text-center text-gray-700 dark:text-gray-300 mb-4">
-            Welcome,{" "}
-            <span className="font-semibold">
-              {user.displayName || user.email}
-            </span>
-            ! (Role: {user.role})
-          </p>
-        )}
+    <>
+      <main className="container mx-auto max-w-7xl p-4 md:p-8">
+        <Card>
+          <CardHeader className="items-center">
+            <CardTitle className="text-3xl font-bold tracking-tight">
+              Admin Dashboard
+            </CardTitle>
+            {user && (
+              <CardDescription>
+                Welcome,{" "}
+                <span className="font-semibold">
+                  {user.displayName || user.email}
+                </span>{" "}
+                (Role: {user.role})
+              </CardDescription>
+            )}
+          </CardHeader>
+          <CardContent>
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-semibold tracking-tight">
+                All Blog Posts
+              </h2>
+              <Button asChild>
+                <Link href="/admin/posts/new">
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Post
+                </Link>
+              </Button>
+            </div>
 
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-            All Blog Posts
-          </h2>
-          <Link
-            href="/admin/posts/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <svg
-              className="mr-2 -ml-1 w-5 h-5"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
+            {error && (
+              <Alert variant="destructive" className="mb-6">
+                <ExclamationTriangleIcon className="h-4 w-4" />
+                <AlertTitle>An Error Occurred</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {posts.length === 0 ? (
+              <div className="flex min-h-[400px] flex-col items-center justify-center rounded-md border border-dashed p-8 text-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-10 w-10 text-primary"
+                  >
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                </div>
+                <h3 className="mt-6 text-xl font-semibold">No Posts Found</h3>
+                <p className="mt-2 mb-8 text-sm text-muted-foreground">
+                  You have not created any posts yet. Get started by creating a
+                  new post.
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead className="hidden md:table-cell">
+                        Author
+                      </TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="hidden sm:table-cell">
+                        Date Created
+                      </TableHead>
+                      <TableHead>
+                        <span className="sr-only">Actions</span>
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {posts.map((post) => (
+                      <TableRow key={post.id}>
+                        <TableCell className="font-medium">
+                          {post.title}
+                        </TableCell>
+                        <TableCell className="hidden text-muted-foreground md:table-cell">
+                          {post.authorName}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={post.published ? "default" : "secondary"}
+                          >
+                            {post.published ? "Published" : "Draft"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden text-muted-foreground sm:table-cell">
+                          {formatDate(post.createdAt.toDate())}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                className="h-8 w-8 p-0"
+                                disabled={isSubmitting}
+                              >
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem asChild>
+                                <Link href={`/admin/posts/${post.id}/edit`}>
+                                  Edit
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleTogglePublish(post.id, post.published)
+                                }
+                              >
+                                {post.published ? "Unpublish" : "Publish"}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
+                                onClick={() => setPostToDelete(post)}
+                              >
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="flex justify-center border-t pt-6">
+            <Button
+              variant="destructive"
+              onClick={logout}
+              disabled={isSubmitting}
             >
-              <path
-                fillRule="evenodd"
-                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                clipRule="evenodd"
-              ></path>
-            </svg>
-            New Post
-          </Link>
-        </div>
+              Logout
+            </Button>
+          </CardFooter>
+        </Card>
+      </main>
 
-        {loadingPosts && posts.length === 0 ? ( // Show full loading spinner only if no posts are loaded yet
-          <div className="text-center py-8">
-            <svg
-              className="animate-spin h-8 w-8 text-blue-500 mx-auto"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
+      <AlertDialog
+        open={!!postToDelete}
+        onOpenChange={(open) => !open && setPostToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              post titled "{postToDelete?.title}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePost}
+              disabled={isSubmitting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Loading posts...
-            </p>
-          </div>
-        ) : error ? (
-          <div
-            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-            role="alert"
-          >
-            <span className="block sm:inline">{error}</span>
-          </div>
-        ) : posts.length === 0 ? (
-          <p className="text-center text-gray-600 dark:text-gray-400 py-8">
-            No posts found. Start by creating a new one!
-          </p>
-        ) : (
-          <div className="overflow-x-auto rounded-lg shadow-md">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                  >
-                    Title
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                  >
-                    Author
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                  >
-                    Published
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                  >
-                    Date
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {posts.map((post) => (
-                  <tr
-                    key={post.id}
-                    className={loadingPosts ? "opacity-70 animate-pulse" : ""}
-                  >
-                    {" "}
-                    {/* Add subtle loading feedback per row */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {post.title}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-700 dark:text-gray-300">
-                        {post.authorName}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {post.published ? (
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                          Yes
-                        </span>
-                      ) : (
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
-                          No
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                      {formatDate(post.createdAt.toDate())}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link
-                        href={`/admin/posts/${post.id}/edit`}
-                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4"
-                      >
-                        Edit
-                      </Link>
-                      <button
-                        onClick={() =>
-                          handleTogglePublish(post.id, post.published)
-                        }
-                        className={`text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-4 ${
-                          post.published ? "font-semibold" : ""
-                        }`}
-                        disabled={loadingPosts} // Disable buttons during operations
-                      >
-                        {post.published ? "Unpublish" : "Publish"}
-                      </button>
-                      <button
-                        onClick={() => handleDeletePost(post.id, post.title)}
-                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                        disabled={loadingPosts} // Disable buttons during operations
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        <div className="mt-8 text-center">
-          <button
-            onClick={logout}
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    </div>
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Delete Post
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
